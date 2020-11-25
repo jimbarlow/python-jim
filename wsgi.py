@@ -6,7 +6,7 @@ def hello():
     return "Hello World!"
 
 @application.route("/cindy")
-def cindy()
+def cindy():
     return "Hello Cynthia!"
 
 @application.route("/healthz")
