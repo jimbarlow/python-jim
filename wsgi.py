@@ -5,6 +5,10 @@ application = flask.Flask(__name__)
 def hello():
     return "Hello World!"
 
+@application.route("/cindy")
+def cindy()
+    return "Hello Cynthia!"
+
 @application.route("/healthz")
 def healthz():
     resp = flask.Response("ok")
