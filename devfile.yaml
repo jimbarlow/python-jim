@@ -1,43 +1,50 @@
----
-# devfile for Python flask projects, adapted from
-# https://github.com/eclipse-che/che-devfile-registry/blob/main/devfiles/python/devfile.yaml
-apiVersion: 1.0.0
+schemaVersion: 2.1.0
 metadata:
-  generateName: flask-
-projects:
-  - name: python-jim
-    source:
-      type: git
-      location: "https://github.com/jimbarlow/python-jim"
+  name: python
+  version: 2.0.0
+  displayName: Python
+  description: Python Stack with Python 3.9
+  icon: https://raw.githubusercontent.com/devfile-samples/devfile-stack-icons/main/python.svg
+  tags: ['Python', 'pip']
+  projectType: 'python'
+  language: 'python'
+starterProjects:
+  - name: python-example
+    git:
+      remotes:
+        origin: https://github.com/devfile-samples/python-ex
 components:
-  - type: chePlugin
-    id: ms-python/python/latest
-  - type: dockerimage
-    alias: python
-    image: quay.io/eclipse/che-python-3.8:next
-    memoryLimit: 512Mi
-    mountSources: true
-    env:
-      - name: FLASK_SECRET
-        value: 'you-will-never-guess'
-    endpoints:
-      - name: websocket-forward
-        port: 8080
-        attributes:
-          protocol: http
-          secure: 'false'
-          public: 'true'
-          discoverable: 'false'
+  - name: py-web
+    container:
+      image: registry.access.redhat.com/ubi9/python-39:latest
+      mountSources: true
+      endpoints:
+        - name: http-python
+          targetPort: 8080
+      env:
+        - name: DEBUG_PORT
+          value: '5858'
 commands:
-  - name: run
-    actions:
-      - type: exec
-        component: python
-        command: '${HOME}/.local/bin/gunicorn wsgi:application -b 0.0.0.0:8080'
-        workdir: '${CHE_PROJECTS_ROOT}/barlow-jim'
-  - name: install
-    actions:
-      - type: exec
-        component: python
-        command: 'pip3 install -r requirements.txt'
-        workdir: '${CHE_PROJECTS_ROOT}/python-jim'
+  - id: pip-install-requirements
+    exec:
+      commandLine: pip install -r requirements.txt
+      workingDir: ${PROJECT_SOURCE}
+      group:
+        kind: build
+        isDefault: true
+      component: py-web
+  - id: run-app
+    exec:
+      commandLine: 'python app.py'
+      workingDir: ${PROJECT_SOURCE}
+      component: py-web
+      group:
+        kind: run
+        isDefault: true
+  - id: debugpy
+    exec:
+      commandLine: 'pip install debugpy && python -m debugpy --listen 0.0.0.0:${DEBUG_PORT} app.py'
+      workingDir: ${PROJECT_SOURCE}
+      component: py-web
+      group:
+        kind: debug
